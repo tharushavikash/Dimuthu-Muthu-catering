@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dimuthu Muthu Caters — POS</title>
+<style>
+:root{
+  --primary:#16324f; --primary2:#1d4368; --accent:#e07b39; --accent2:#c9662a;
+  --bg:#f4f6f9; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+  --green:#2a9d8f; --red:#e63946; --amber:#f4a261; --border:#e5e7eb;
+  --radius:12px; --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 14px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:var(--bg);color:var(--text);font-size:14px}
+button{cursor:pointer;border:none;border-radius:8px;font-size:14px;transition:.15s}
+input,select,textarea{border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;background:#fff;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent)40;border-color:var(--accent)}
+label{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.btn{background:var(--primary);color:#fff;padding:10px 16px;font-weight:600}
+.btn:hover{background:var(--primary2)}
+.btn-accent{background:var(--accent);color:#fff;padding:10px 16px;font-weight:600}
+.btn-accent:hover{background:var(--accent2)}
+.btn-green{background:var(--green);color:#fff;padding:10px 16px;font-weight:600}
+.btn-red{background:var(--red);color:#fff;padding:8px 12px;font-weight:600}
+.btn-ghost{background:#eef1f5;color:var(--text);padding:9px 14px}
+.btn-ghost:hover{background:#e2e7ee}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- LOGIN ---------- */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#16324f 0%,#1d4368 55%,#2a5780 100%);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100}
+.login-card{background:#fff;border-radius:20px;padding:38px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.login-logo{text-align:center;margin-bottom:26px}
+.login-logo .mark{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--amber));display:inline-flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:12px}
+.login-logo h1{font-size:22px;color:var(--primary)}
+.login-logo p{color:var(--muted);font-size:13px}
+.counter-pick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:6px}
+.counter-pick button{padding:12px 0;border:2px solid var(--border);background:#fff;font-weight:700;border-radius:10px}
+.counter-pick button.sel{border-color:var(--accent);background:#fdf1e7;color:var(--accent2)}
+
+/* ---------- LAYOUT ---------- */
+#app{display:none}
+#sidebar{position:fixed;left:0;top:0;bottom:0;width:212px;background:var(--primary);color:#fff;z-index:50;display:flex;flex-direction:column}
+#sidebar .brand{padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+#sidebar .brand h2{font-size:15px;line-height:1.3}
+#sidebar .brand small{color:#9db4cd;font-size:11px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:13px 18px;color:#c6d4e3;font-weight:500;cursor:pointer;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.1);color:#fff;border-left-color:var(--accent)}
+.nav-item .ico{font-size:18px;width:22px;text-align:center}
+#sidebar .foot{margin-top:auto;padding:14px 16px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;color:#9db4cd}
+#main{margin-left:212px;min-height:100vh;padding:22px 26px 90px}
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.page-head h2{font-size:21px;color:var(--primary)}
+.page-head .sub{color:var(--muted);font-size:13px;margin-top:2px}
+
+/* ---------- CARDS / GRIDS ---------- */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.grid{display:grid;gap:16px}
+.stat-card{padding:18px}
+.stat-card .lbl{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.stat-card .val{font-size:26px;font-weight:800;color:var(--primary);margin-top:6px}
+.stat-card .delta{font-size:12px;margin-top:4px;color:var(--green)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.b-blue{background:#dbeafe;color:#1d4ed8}.b-green{background:#d1fae5;color:#047857}
+.b-amber{background:#fef3c7;color:#b45309}.b-red{background:#fee2e2;color:#b91c1c}
+.b-gray{background:#e5e7eb;color:#4b5563}.b-purple{background:#ede9fe;color:#6d28d9}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border)}
+td{padding:10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.tbl-wrap{overflow-x:auto}
+
+/* ---------- POS ---------- */
+.pos-wrap{display:grid;grid-template-columns:1fr 390px;gap:16px;height:calc(100vh - 130px)}
+.pos-left{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cat-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.cat-tab{padding:9px 16px;background:#fff;border:2px solid var(--border);border-radius:20px;font-weight:600;font-size:13px}
+.cat-tab.active{border-color:var(--accent);background:#fdf1e7;color:var(--accent2)}
+.prod-grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;align-content:start;padding-right:4px}
+.prod-btn{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 10px;text-align:center;box-shadow:var(--shadow);min-height:92px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.prod-btn:hover{border-color:var(--accent);transform:translateY(-2px)}
+.prod-btn .nm{font-weight:700;font-size:13px;line-height:1.25}
+.prod-btn .pr{color:var(--accent2);font-weight:800;font-size:14px}
+.cart{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+.cart-head{padding:14px 16px;background:var(--primary);color:#fff}
+.cart-head .row{display:flex;gap:6px;margin-top:10px}
+.ot-btn{flex:1;padding:8px 0;background:rgba(255,255,255,.14);color:#fff;font-weight:600;font-size:12px;border-radius:8px}
+.ot-btn.active{background:var(--accent)}
+.cart-items{flex:1;overflow-y:auto;padding:8px 12px;min-height:120px}
+.cart-line{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px dashed var(--border)}
+.cart-line .nm{flex:1;font-weight:600;font-size:13px}
+.cart-line .pr{font-weight:700;font-size:13px;min-width:74px;text-align:right}
+.qty-ctl{display:flex;align-items:center;gap:4px}
+.qty-ctl button{width:26px;height:26px;background:#eef1f5;border-radius:6px;font-weight:800;font-size:15px;line-height:1}
+.qty-ctl .q{min-width:26px;text-align:center;font-weight:700}
+.cart-foot{padding:12px 16px;border-top:2px solid var(--border);background:#fafbfd}
+.cart-foot .ln{display:flex;justify-content:space-between;padding:3px 0;font-size:13px}
+.cart-foot .ln.total{font-size:19px;font-weight:800;color:var(--primary);border-top:2px solid var(--border);margin-top:6px;padding-top:8px}
+.cart-actions{display:flex;gap:8px;margin-top:12px}
+.cart-actions button{flex:1;padding:12px 0;font-size:14px}
+
+/* ---------- MODAL / TOAST ---------- */
+#modal-root{position:fixed;inset:0;background:rgba(15,30,45,.55);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+#modal-root.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff}
+.modal-head h3{font-size:16px;color:var(--primary)}
+.modal-body{padding:20px}
+.modal-x{background:#eef1f5;width:30px;height:30px;border-radius:8px;font-size:16px;font-weight:700}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(90px);background:var(--primary);color:#fff;padding:12px 22px;border-radius:12px;font-weight:600;z-index:300;transition:.3s;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.err{background:var(--red)}
+
+/* ---------- CALENDAR ---------- */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{text-align:center;font-size:11px;font-weight:800;color:var(--muted);padding:6px 0;text-transform:uppercase}
+.cal-day{background:#fff;border:1px solid var(--border);border-radius:10px;min-height:86px;padding:6px;font-size:12px}
+.cal-day.dim{background:#fafafa;color:#c3c9d3}
+.cal-day.today{border:2px solid var(--accent)}
+.cal-day .dnum{font-weight:800;font-size:13px}
+.cal-ev{background:#eaf3fb;border-left:3px solid var(--primary);border-radius:5px;padding:2px 5px;margin-top:4px;font-size:10.5px;font-weight:600;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cal-ev.st1{border-left-color:var(--amber);background:#fdf6ec}
+.cal-ev.st2{border-left-color:var(--green);background:#eaf7f5}
+.cal-ev.st5{border-left-color:#9b5de5;background:#f4effc}
+
+/* ---------- KITCHEN ---------- */
+.kt-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.kt-ticket{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;border-top:4px solid var(--amber)}
+.kt-ticket.ready{border-top-color:var(--green)}
+.kt-ticket.done{border-top-color:#9ca3af;opacity:.65}
+.kt-ticket h4{font-size:14px;color:var(--primary)}
+.kt-items{margin:10px 0;padding:8px 0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border)}
+.kt-items div{padding:3px 0;font-size:13px;display:flex;justify-content:space-between}
+
+/* ---------- STATUS PILL STEPS ---------- */
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.step{padding:6px 14px;border-radius:20px;background:#eef1f5;font-size:12px;font-weight:700;color:var(--muted)}
+.step.done{background:var(--green);color:#fff}
+.step.cur{background:var(--accent);color:#fff}
+
+/* ---------- MOBILE ---------- */
+#mob-nav{display:none}
+@media(max-width:980px){
+  #sidebar{display:none}
+  #main{margin-left:0;padding:14px 12px 96px}
+  .pos-wrap{grid-template-columns:1fr;height:auto}
+  .cart{position:sticky;bottom:70px}
+  .prod-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+  #mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--primary);z-index:60;justify-content:space-around;padding:6px 0 max(6px,env(safe-area-inset-bottom))}
+  #mob-nav .nav-item{flex-direction:column;gap:2px;padding:6px 8px;border:none;font-size:10px;color:#c6d4e3}
+  #mob-nav .nav-item.active{background:none;color:var(--accent)}
+}
+/* ---------- PRINT ---------- */
+#print-area{display:none}
+@media print{
+  body>*{display:none !important}
+  #print-area{display:block !important;font-family:'Courier New',monospace;width:76mm;margin:0 auto;color:#000;font-size:12px}
+  #print-area.a4{width:190mm;font-family:'Segoe UI',sans-serif;font-size:13px}
+}
+@media print and (min-width:100px){ #print-area.a4{page-break-inside:auto} }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="mark">🍛</div>
+      <h1>Dimuthu Muthu Caters</h1>
+      <p>Point of Sale System · Sri Lanka</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div><label>Your Name</label><input id="login-name" placeholder="e.g. Dimuthu" value="Dimuthu"></div>
+      <div><label>Role</label>
+        <select id="login-role">
+          <option selected>Owner / Admin</option><option>Manager</option><option>Cashier</option>
+          <option>Catering Coordinator</option><option>Kitchen Staff</option><option>Storekeeper</option>
+        </select>
+      </div>
+      <div>
+        <label>Select Counter (1–5)</label>
+        <div class="counter-pick" id="counter-pick"></div>
+      </div>
+      <button class="btn-accent" style="padding:13px;font-size:15px" onclick="doLogin()">Sign In to POS</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <div id="sidebar">
+    <div class="brand"><h2>🍛 Dimuthu Muthu<br>Caters</h2><small id="brand-sub">POS · Sri Lanka</small></div>
+    <div id="nav-desk"></div>
+    <div class="foot"><div id="whoami"></div><br><a style="color:#f4a261;cursor:pointer" onclick="logout()">Sign out</a></div>
+  </div>
+  <div id="mob-nav"></div>
+  <div id="main"><div id="screen"></div></div>
+</div>
+
+<div id="modal-root"><div class="modal" id="modal-box"></div></div>
+<div id="toast"></div>
+<div id="print-area"></div>
+
+<script>
+/* =====================================================
+   DIMUTHU MUTHU CATERERS — POS PROTOTYPE
+   Data persists in browser localStorage (demo mode).
+   ===================================================== */
+const $=s=>document.querySelector(s);
+const fmt=n=>'Rs. '+(Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const num=n=>(Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nowISO=()=>new Date().toISOString();
+const todayISO=()=>new Date().toISOString().slice(0,10);
+const dISO=d=>{const t=new Date(d);return t.toLocaleDateString('en-GB');};
+const tISO=d=>{const t=new Date(d);return t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});};
+const dAdd=(iso,n)=>{const d=new Date(iso);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};
+
+/* ---------- SEED DATA ---------- */
+function seed(){
+  const P=(id,name,cat,price,type,unit,extra={})=>({id,name,cat,price,type,unit,...extra});
+  return {
+    business:{name:'Dimuthu Muthu Caters',address:'No. 42, Kandy Road, Kadawatha',phone:'011 234 5678',
+      email:'orders@dimuthumuthu.lk',tin:'',vatRegistered:false,serviceChargePct:10,
+      payhere:{merchantId:'',secret:'',enabled:true},
+      methods:{cash:true,card:true,bank:true,payhere:true},counters:5},
+    products:[
+      P('p1','Egg Roll','Short Eats',120,'counter','each',{stock:40,minStock:10}),
+      P('p2','Fish Patty','Short Eats',150,'counter','each',{stock:30,minStock:10}),
+      P('p3','Chicken Samosa','Short Eats',130,'counter','each',{stock:25,minStock:10}),
+      P('p4','Vegetarian Roll','Short Eats',100,'counter','each',{stock:35,minStock:10}),
+      P('p5','Beef Bun','Bakery',140,'counter','each',{stock:20,minStock:8}),
+      P('p6','Butter Cake Slice','Bakery',180,'counter','each',{stock:15,minStock:6}),
+      P('p7','Plain Tea','Beverages',60,'counter','each',{stock:999}),
+      P('p8','Milk Tea','Beverages',120,'counter','each',{stock:999}),
+      P('p9','Coffee','Beverages',180,'counter','each',{stock:999}),
+      P('p10','Soft Drink','Beverages',150,'counter','each',{stock:48,minStock:12}),
+      P('p11','Water Bottle','Beverages',80,'counter','each',{stock:60,minStock:20}),
+      P('p12','Fresh Juice','Beverages',250,'counter','each',{stock:999}),
+      P('p13','Ice Cream Cup','Ice Cream',300,'counter','each',{stock:25,minStock:10}),
+      P('c1','Rice & Curry Buffet','Main Menu',1500,'catering','per plate',{recipe:true}),
+      P('c2','Chicken Biryani','Main Menu',1200,'catering','per plate',{recipe:true}),
+      P('c3','Vegetable Fried Rice','Main Menu',1000,'catering','per plate',{recipe:true}),
+      P('c4','Kottu Roti','Main Menu',900,'catering','per plate',{recipe:true}),
+      P('c5','String Hopper Menu','Main Menu',800,'catering','per plate',{recipe:true}),
+      P('c6','Hopper Menu','Main Menu',900,'catering','per plate',{recipe:true}),
+      P('c7','Pittu Menu','Main Menu',850,'catering','per plate'),
+      P('c8','Seafood Platter','Main Menu',2500,'catering','per plate'),
+      P('c9','Dessert Buffet','Desserts',500,'catering','per plate',{recipe:true}),
+      P('c10','Watalappan','Desserts',250,'catering','per plate'),
+      P('c11','Fruit Salad','Desserts',200,'catering','per plate'),
+      P('c12','Live Tea/Coffee Station','Desserts',350,'catering','per plate'),
+      P('x1','Delivery (within 30km)','Extras',5000,'extra','each'),
+      P('x2','Service Staff (per person)','Extras',2500,'extra','each'),
+      P('x3','Chafing Dish Rental','Extras',1500,'extra','each'),
+      P('x4','Table & Chair Set (10 pax)','Extras',5000,'extra','each'),
+      P('x5','Basic Decoration','Extras',10000,'extra','each'),
+    ],
+    inventory:[
+      {id:'i1',name:'Rice (Samba)',unit:'kg',stock:120,cost:220,minStock:50},
+      {id:'i2',name:'Chicken',unit:'kg',stock:40,cost:1350,minStock:20},
+      {id:'i3',name:'Vegetables (mix)',unit:'kg',stock:30,cost:320,minStock:15},
+      {id:'i4',name:'Eggs',unit:'pcs',stock:300,cost:28,minStock:100},
+      {id:'i5',name:'Wheat Flour',unit:'kg',stock:50,cost:260,minStock:20},
+      {id:'i6',name:'Coconut Milk',unit:'L',stock:20,cost:480,minStock:10},
+      {id:'i7',name:'Cooking Oil',unit:'L',stock:25,cost:890,minStock:10},
+      {id:'i8',name:'Milk Powder',unit:'kg',stock:12,cost:3400,minStock:5},
+      {id:'i9',name:'Sugar',unit:'kg',stock:30,cost:245,minStock:10},
+      {id:'i10',name:'Spice Mix',unit:'kg',stock:8,cost:1800,minStock:3},
+      {id:'i11',name:'String Hopper Flour',unit:'kg',stock:15,cost:300,minStock:8},
+      {id:'i12',name:'Kithul Treacle',unit:'L',stock:6,cost:1500,minStock:2},
+    ],
+    recipes:{
+      c1:[['i1',.30],['i2',.20],['i3',.25],['i10',.02],['i6',.05]],
+      c2:[['i1',.25],['i2',.18],['i10',.03],['i7',.03],['i3',.10]],
+      c3:[['i1',.25],['i3',.20],['i7',.03],['i10',.02]],
+      c4:[['i5',.15],['i2',.12],['i3',.10],['i10',.02]],
+      c5:[['i11',.20],['i6',.05],['i3',.15]],
+      c6:[['i1',.15],['i6',.08],['i4',1]],
+      c9:[['i8',.03],['i9',.05],['i12',.02]],
+    },
+    customers:[
+      {id:'cu1',name:'Nimal Perera',phone:'077 123 4567',email:'nimal@gmail.com',address:'Colombo 07',notes:'Prefers less spicy'},
+      {id:'cu2',name:'Kumari Silva',phone:'071 987 6543',email:'',address:'Negombo',notes:''},
+      {id:'cu3',name:'Dialog Technologies (Pvt) Ltd',phone:'011 456 7890',email:'events@dialog.lk',address:'Colombo 03',notes:'Corporate account'},
+    ],
+    counterOrders:[],heldOrders:[],cateringOrders:[],
+    seq:{counter:1000,catering:500},
+    moves:[],
+  };
+}
+
+/* ---------- STATE ---------- */
+let S=JSON.parse(localStorage.getItem('dmc_pos')||'null');
+if(!S){S=seed();seedOrders();save();}
+else if(S.session){
+  window.addEventListener('DOMContentLoaded', () => {
+    refreshLoginCounters();
+    $('#login-screen').style.display='none';
+    $('#app').style.display='block';
+    $('#whoami').innerHTML='👤 '+esc(S.session.name)+'<br><small>'+esc(S.session.role)+' · Counter '+S.session.counter+'</small>';
+    $('#brand-sub').textContent=isAdmin()?'ADMIN · FULL ACCESS · LKR':'Counter '+S.session.counter+' · LKR';
+    buildNav();go('dashboard');
+  });
+}
+function save(){localStorage.setItem('dmc_pos',JSON.stringify(S));}
+
+function seedOrders(){
+  const mk=(mins,items,type,pay)=>{const d=new Date(Date.now()-mins*60000);
+    const its=items.map(([pid,q])=>{const p=S.products.find(x=>x.id===pid);return{id:pid,name:p.name,price:p.price,qty:q};});
+    const sub=its.reduce((a,i)=>a+i.price*i.qty,0);
+    return {id:uid(),no:'C'+(++S.seq.counter),counter:1+Math.floor(Math.random()*5),cashier:'Kasun',
+      type,items:its,subtotal:sub,discount:0,svc:0,total:sub,payments:[{method:pay,amount:sub}],
+      change:0,status:'done',createdAt:d.toISOString()};};
+  S.counterOrders=[
+    mk(300,[['p1',2],['p8',2]],'Takeaway','cash'),
+    mk(240,[['p2',1],['p10',1],['p13',1]],'Dine-in','card'),
+    mk(90,[['p3',3],['p8',3]],'Takeaway','cash'),
+    mk(30,[['p6',2],['p9',2]],'Dine-in','cash'),
+  ];
+  const ev=(title,days,cust,guests,lines,status,paid)=>{
+    const date=dAdd(todayISO(),days);
+    const ls=lines.map(([pid,perPlate,qty])=>{const p=S.products.find(x=>x.id===pid);
+      return{id:pid,name:p.name,unit:p.unit,rate:p.price,qty,perPlate};});
+    const sub=ls.reduce((a,l)=>a+l.rate*(l.perPlate?guests:l.qty),0);
+    return {id:uid(),no:'CT'+(++S.seq.catering),customerId:cust, customer:S.customers.find(c=>c.id===cust).name,
+      event:{title,date,time:'6.00 PM',venue:'Grand Ballroom, Hotel Hilltop',guests,contact:'077 111 2223'},
+      lines:ls,extras:[],discount:0,notes:'',status,payments:paid?[{method:'bank',amount:paid,ref:'TRF-8871',date:nowISO()}]:[],
+      createdAt:nowISO()};};
+  S.cateringOrders=[
+    ev('Silva Wedding Reception',2,'cu2',150,[['c1',true,1],['c9',true,1],['x1',false,1],['x2',false,4]],'Confirmed',50000),
+    ev('Dialog Year-End Dinner',9,'cu3',200,[['c2',true,1],['c10',true,1],['x1',false,2],['x2',false,6],['x5',false,1]],'Quotation',0),
+    ev('Perera Home Coming',16,'cu1',80,[['c5',true,1],['c6',true,1],['x2',false,2]],'Preparing',25000),
+  ];
+}
+
+/* ---------- LOGIN / NAV ---------- */
+let UI={screen:'dashboard',counter:1,cat:'All',calMonth:new Date(),rptFrom:dAdd(todayISO(),-6),rptTo:todayISO()};
+let pickCounter=1;
+
+function selectCounter(num, btn) {
+  pickCounter = num;
+  document.querySelectorAll('#counter-pick button').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+function doLogin(){
+  S.session={name:$('#login-name').value||'User',role:$('#login-role').value,counter:pickCounter};
+  save();
+  $('#login-screen').style.display='none';
+  $('#app').style.display='block';
+  $('#whoami').innerHTML='👤 '+esc(S.session.name)+'<br><small>'+esc(S.session.role)+' · Counter '+S.session.counter+'</small>';
+  $('#brand-sub').textContent=isAdmin()?'ADMIN · FULL ACCESS · LKR':'Counter '+S.session.counter+' · LKR';
+  buildNav();
+  go('dashboard');
+}
+function logout(){delete S.session;save();location.reload();}
+
+const NAV=[['dashboard','🏠','Dashboard'],['pos','🛒','Counter POS'],['catering','🍽️','Catering'],
+  ['calendar','📅','Calendar'],['kitchen','👨‍🍳','Kitchen'],['inventory','📦','Inventory'],
+  ['customers','👥','Customers'],['reports','📊','Reports'],['settings','⚙️','Settings']];
+
+/* ---------- ROLE ACCESS ----------
+   Owner / Admin has unrestricted access to every POS module.
+   Other roles only see modules relevant to their job. */
+const ROLE_ACCESS={
+  'Owner / Admin':NAV.map(x=>x[0]),
+  'Manager':['dashboard','pos','catering','calendar','kitchen','inventory','customers','reports','settings'],
+  'Cashier':['dashboard','pos'],
+  'Catering Coordinator':['dashboard','catering','calendar','customers'],
+  'Kitchen Staff':['dashboard','kitchen'],
+  'Storekeeper':['dashboard','inventory']
+};
+function isAdmin(){return S.session && S.session.role==='Owner / Admin';}
+function canAccess(screen){
+  if(isAdmin()) return true;
+  const allowed=ROLE_ACCESS[S.session?.role]||['dashboard'];
+  return allowed.includes(screen);
+}
+function buildNav(){
+  const allowed=NAV.filter(([k])=>canAccess(k));
+  const make=(k,i,l)=>'<div class="nav-item'+(UI.screen===k?' active':'')+'" onclick="go(\''+k+'\')"><span class="ico">'+i+'</span>'+l+'</div>';
+  $('#nav-desk').innerHTML=allowed.map(([k,i,l])=>make(k,i,l)).join('');
+  $('#mob-nav').innerHTML=allowed.map(([k,i,l])=>make(k,i,l)).join('');
+}
+function go(s,arg){
+  if(!canAccess(s)){
+    toast('Access denied for '+(S.session?.role||'this role'),true);
+    return;
+  }
+  UI.screen=s;UI.arg=arg;buildNav();window.scrollTo(0,0);render();
+}
+/* ---------- MODAL / TOAST ---------- */
+function openModal(html){$('#modal-box').innerHTML='<div class="modal-head"><h3 id="modal-title"></h3><button class="modal-x" onclick="closeModal()">✕</button></div><div class="modal-body" id="modal-body">'+html+'</div>';$('#modal-root').classList.add('show');}
+function closeModal(){$('#modal-root').classList.remove('show');}
+function mTitle(t){$('#modal-title').textContent=t;}
+function toast(m,err){const t=$('#toast');t.textContent=m;t.className=err?'err show':'show';setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ---------- RENDER DISPATCH ---------- */
+function render(){
+  const el=$('#screen');
+  switch(UI.screen){
+    case 'dashboard':return renderDash(el);
+    case 'pos':return renderPOS(el);
+    case 'catering':return renderCatering(el);
+    case 'cateringNew':return renderCateringNew(el);
+    case 'cateringDetail':return renderCateringDetail(el,UI.arg);
+    case 'calendar':return renderCal(el);
+    case 'kitchen':return renderKitchen(el);
+    case 'inventory':return renderInv(el);
+    case 'customers':return renderCust(el);
+    case 'reports':return renderRpt(el);
+    case 'settings':return renderSettings(el);
+  }
+}
+
+/* ---------- DASHBOARD ---------- */
+function renderDash(el){
+  const t=todayISO();
+  const todayOrders=S.counterOrders.filter(o=>o.createdAt.slice(0,10)===t);
+  const rev=todayOrders.reduce((a,o)=>a+o.total,0);
+  const upcoming=S.cateringOrders.filter(o=>!['Cancelled','Completed'].includes(o.status)&&o.event.date>=t).sort((a,b)=>a.event.date.localeCompare(b.event.date));
+  const owed=S.cateringOrders.filter(o=>!['Cancelled','Quotation'].includes(o.status)).reduce((a,o)=>a+orderBalance(o),0);
+  const lowInv=S.inventory.filter(i=>i.stock<=i.minStock);
+  const lowProd=S.products.filter(p=>p.type==='counter'&&p.minStock&&p.stock<=p.minStock);
+  el.innerHTML=`
+  <div class="page-head"><div><h2>Good day, ${esc(S.session.name)} 👋</h2><div class="sub">${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div>
+  <button class="btn-accent" onclick="go('pos')">🛒 Open Counter POS</button></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:16px">
+    <div class="card stat-card"><div class="lbl">Counter Sales Today</div><div class="val">${fmt(rev)}</div><div class="delta">${todayOrders.length} orders</div></div>
+    <div class="card stat-card"><div class="lbl">Upcoming Events</div><div class="val">${upcoming.length}</div><div class="delta">next: ${upcoming[0]?dISO(upcoming[0].event.date)+' · '+esc(upcoming[0].event.title):'—'}</div></div>
+    <div class="card stat-card"><div class="lbl">Outstanding Balances</div><div class="val" style="color:var(--red)">${fmt(owed)}</div><div class="delta">to collect</div></div>
+    <div class="card stat-card"><div class="lbl">Low Stock Alerts</div><div class="val" style="color:${(lowInv.length+lowProd.length)?'var(--amber)':'var(--green)'}">${lowInv.length+lowProd.length}</div><div class="delta">items at/below minimum</div></div>
+  </div>
+  <div class="grid" style="grid-template-columns:1.5fr 1fr">
+    <div class="card"><h3 style="margin-bottom:10px;color:var(--primary)">📋 Upcoming Catering Events</h3>
+      <div class="tbl-wrap"><table><tr><th>Event</th><th>Date</th><th>Guests</th><th>Value</th><th>Status</th></tr>
+      ${upcoming.slice(0,7).map(o=>`<tr style="cursor:pointer" onclick="go('cateringDetail','${o.id}')">
+        <td><b>${esc(o.event.title)}</b><br><small style="color:var(--muted)">${esc(o.customer)}</small></td>
+        <td>${dISO(o.event.date)}<br><small style="color:var(--muted)">${esc(o.event.time)}</small></td>
+        <td>${o.event.guests}</td><td>${fmt(orderTotal(o))}</td><td>${statusBadge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted)">No upcoming events</td></tr>'}
+      </table></div></div>
+    <div class="card"><h3 style="margin-bottom:10px;color:var(--primary)">⚡ Quick Actions</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn" onclick="go('cateringNew')">🍽️ New Catering Order / Quotation</button>
+        <button class="btn" onclick="go('calendar')">📅 Event Calendar</button>
+        <button class="btn" onclick="go('kitchen')">👨‍🍳 Kitchen Display</button>
+        <button class="btn" onclick="go('inventory')">📦 Inventory & Shopping List</button>
+        <button class="btn" onclick="go('reports')">📊 Reports</button>
+      </div>
+      ${lowInv.length?`<h3 style="margin:16px 0 8px;color:var(--red)">⚠️ Low Stock</h3>
+      ${lowInv.slice(0,5).map(i=>`<div style="padding:5px 0;border-bottom:1px dashed var(--border);font-size:13px">${esc(i.name)} — <b>${i.stock} ${i.unit}</b> (min ${i.minStock})</div>`).join('')}`:''}
+    </div>
+  </div>`;
+}
+const statusBadge=s=>({'Quotation':'<span class="badge b-amber">QUOTATION</span>','Confirmed':'<span class="badge b-blue">CONFIRMED</span>',
+ 'Preparing':'<span class="badge b-purple">PREPARING</span>','Ready':'<span class="badge b-green">READY</span>',
+ 'Delivered':'<span class="badge b-green">DELIVERED</span>','Completed':'<span class="badge b-gray">COMPLETED</span>',
+ 'Cancelled':'<span class="badge b-red">CANCELLED</span>'}[s]||s);
+
+/* ==================== COUNTER POS ==================== */
+let cart=null;
+function resetCart(){cart={type:'Takeaway',items:[],discountVal:0,discountMode:'amt',svcOn:false};}
+resetCart();
+function cartCalc(){
+  const sub=cart.items.reduce((a,i)=>a+i.price*i.qty,0);
+  const disc=cart.discountMode==='pct'?sub*cart.discountVal/100:Math.min(cart.discountVal,sub);
+  const base=sub-disc;
+  const svc=cart.svcOn?base*(S.business.serviceChargePct||0)/100:0;
+  return{sub,disc,svc,total:base+svc};
+}
+function renderPOS(el){
+  const cats=['All',...new Set(S.products.filter(p=>p.type==='counter').map(p=>p.cat))];
+  const c=cartCalc();
+  el.innerHTML=`
+  <div class="page-head"><div><h2>Counter ${S.session.counter} — Sales</h2><div class="sub">Cashier: ${esc(S.session.name)} · ${new Date().toLocaleDateString('en-GB')}</div></div>
+    <button class="btn-ghost btn" onclick="showHeld()">📋 Held Orders ${S.heldOrders.length?`(${S.heldOrders.length})`:''}</button></div>
+  <div class="pos-wrap">
+    <div class="pos-left">
+      <input id="pos-search" placeholder="🔍 Search items…" oninput="UI.search=this.value;renderPOSGrid()">
+      <div class="cat-tabs">${cats.map(ct=>`<button class="cat-tab ${UI.cat===ct?'active':''}" onclick="UI.cat='${ct}';render()">${ct}</button>`).join('')}</div>
+      <div class="prod-grid" id="prod-grid"></div>
+    </div>
+    <div class="cart">
+      <div class="cart-head"><b style="font-size:15px">Current Order</b>
+        <div class="row">${['Dine-in','Takeaway','Delivery'].map(t=>`<button class="ot-btn ${cart.type===t?'active':''}" onclick="cart.type='${t}';render()">${t}</button>`).join('')}</div>
+      </div>
+      <div class="cart-items" id="cart-items"></div>
+      <div class="cart-foot">
+        <div style="display:flex;gap:8px;align-items:end;margin-bottom:8px">
+          <div style="flex:1"><label>Discount</label>
+            <div style="display:flex;gap:6px"><input type="number" min="0" value="${cart.discountVal}" oninput="cart.discountVal=+this.value||0;renderCartFoot()">
+            <select style="width:70px" onchange="cart.discountMode=this.value;renderCartFoot()"><option value="amt" ${cart.discountMode==='amt'?'selected':''}>Rs</option><option value="pct" ${cart.discountMode==='pct'?'selected':''}>%</option></select></div></div>
+          <div><label>Svc ${S.business.serviceChargePct}%</label><button class="btn-ghost btn" style="width:70px;font-weight:800" onclick="cart.svcOn=!cart.svcOn;render()">${cart.svcOn?'ON':'OFF'}</button></div>
+        </div>
+        <div class="ln"><span>Subtotal</span><b id="cf-sub"></b></div>
+        <div class="ln"><span>Discount</span><b id="cf-disc" style="color:var(--red)"></b></div>
+        <div class="ln"><span>Service charge</span><b id="cf-svc"></b></div>
+        <div class="ln total"><span>TOTAL</span><span id="cf-total"></span></div>
+        <div class="cart-actions">
+          <button class="btn-ghost" onclick="holdCart()">Hold</button>
+          <button class="btn-ghost" style="color:var(--red)" onclick="resetCart();render()">Clear</button>
+          <button class="btn-green" onclick="openPayModal()" ${cart.items.length?'':'disabled'}>PAY ▸</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  renderPOSGrid();renderCartFoot();
+}
+function renderPOSGrid(){
+  const q=(UI.search||'').toLowerCase();
+  const prods=S.products.filter(p=>p.type==='counter'&&(UI.cat==='All'||p.cat===UI.cat)&&(!q||p.name.toLowerCase().includes(q)));
+  $('#prod-grid').innerHTML=prods.map(p=>`<button class="prod-btn" onclick="addToCart('${p.id}')">
+    <div class="nm">${esc(p.name)}</div><div class="pr">${fmt(p.price)}</div>
+    ${p.minStock?`<div style="font-size:10px;color:${p.stock<=p.minStock?'var(--red)':'var(--muted)'}">${p.stock} in stock</div>`:''}</button>`).join('')||'<div style="color:var(--muted);padding:20px">No items found</div>';
+  const ci=$('#cart-items');
+  ci.innerHTML=cart.items.map((i,ix)=>`<div class="cart-line">
+    <div class="nm">${esc(i.name)}</div>
+    <div class="qty-ctl"><button onclick="chQty(${ix},1)">+</button><span class="q">${i.qty}</span><button onclick="chQty(${ix},-1)">−</button></div>
+    <div class="pr">${fmt(i.price*i.qty)}</div>
+    <button class="qty-ctl" style="border:none;background:none;color:var(--red);font-size:15px" onclick="cart.items.splice(${ix},1);render()">✕</button></div>`).join('')
+    ||'<div style="text-align:center;color:var(--muted);padding:40px 0">Tap products to add<br>🛍️</div>';
+}
+function renderCartFoot(){const c=cartCalc();
+  if($('#cf-sub')){$('#cf-sub').textContent=fmt(c.sub);$('#cf-disc').textContent='− '+fmt(c.disc);
+  $('#cf-svc').textContent=fmt(c.svc);$('#cf-total').textContent=fmt(c.total);}}
+function addToCart(id){const p=S.products.find(x=>x.id===id);
+  if(p.minStock&&p.stock<=0)return toast(p.name+' out of stock!',true);
+  const ex=cart.items.find(i=>i.id===id);if(ex)ex.qty++;else cart.items.push({id,qty:1,name:p.name,price:p.price});
+  renderPOSGrid();renderCartFoot();}
+function chQty(ix,d){cart.items[ix].qty+=d;if(cart.items[ix].qty<=0)cart.items.splice(ix,1);renderPOSGrid();renderCartFoot();}
+function holdCart(){if(!cart.items.length)return;S.heldOrders.push({...cart,counter:S.session.counter,heldAt:nowISO()});save();resetCart();render();toast('Order held');}
+function showHeld(){openModal(`<h3>Held Orders</h3>
+  ${S.heldOrders.map((h,i)=>`<div class="card" style="box-shadow:none;border:1px solid var(--border);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+    <div><b>Counter ${h.counter}</b> · ${h.items.reduce((a,x)=>a+x.qty,0)} items · ${fmt(h.items.reduce((a,x)=>a+x.price*x.qty,0))}<br><small style="color:var(--muted)">${tISO(h.heldAt)} ·${h.type}</small></div>
+    <div style="display:flex;gap:6px"><button class="btn-accent" onclick="resumeHeld(${i})">Resume</button>
+    <button class="btn-red" onclick="S.heldOrders.splice(${i},1);save();showHeld();render()">Delete</button></div></div>`).join('')||'<p style="color:var(--muted)">No held orders.</p>'}`);mTitle('Held Orders');}
+function resumeHeld(i){cart=S.heldOrders.splice(i,1)[0];save();closeModal();go('pos');}
+
+function openPayModal(){
+  const c=cartCalc();
+  openModal(`<h3>Payment — ${fmt(c.total)}</h3>
+  <div style="display:flex;flex-direction:column;gap:12px">
+  ${[['cash','💵 Cash'],['card','💳 Card Terminal'],['bank','🏦 Bank Transfer'],['payhere','🌐 PayHere Online']].map(([m,l])=>S.business.methods[m]?`
+    <div><label>${l}</label><input type="number" min="0" step="0.01" id="pay_${m}" placeholder="0.00" oninput="payCalc(${c.total})"></div>`:'').join('')}
+  <div class="card" style="box-shadow:none;background:#fafbfd;display:flex;justify-content:space-between"><span>Paid</span><b id="pay-sum">Rs. 0.00</b></div>
+  <div class="card" style="box-shadow:none;background:#fafbfd;display:flex;justify-content:space-between"><span>Balance / Change</span><b id="pay-rem" style="color:var(--red)">Rs. ${num(c.total)}</b></div>
+  <button class="btn-green" style="padding:14px;font-size:16px" id="pay-done" disabled onclick="completeSale()">COMPLETE SALE ✔</button>
+  </div>`);mTitle('Take Payment · '+cart.type);
+}
+function payCalc(total){
+  const m=['cash','card','bank','payhere'];let sum=0;
+  m.forEach(x=>{const el=$('#pay_'+x);if(el)sum+=parseFloat(el.value)||0;});
+  const rem=sum-total;
+  $('#pay-sum').textContent=fmt(sum);
+  $('#pay-rem').textContent=(rem>=0?'Change: ':'Remaining: ')+fmt(Math.abs(rem));
+  $('#pay-rem').style.color=rem>=0?'var(--green)':'var(--red)';
+  $('#pay-done').disabled=sum+0.001<total;
+}
+function completeSale(){
+  const c=cartCalc();
+  const payments=[];let cashTendered=0;
+  ['cash','card','bank','payhere'].forEach(x=>{const el=$('#pay_'+x);const v=parseFloat(el&&el.value)||0;
+    if(v>0){payments.push({method:x,amount:v});if(x==='cash')cashTendered=v;}});
+  let sum=payments.reduce((a,p)=>a+p.amount,0);let change=Math.max(0,sum-c.total);
+  const order={id:uid(),no:'C'+(++S.seq.counter),counter:S.session.counter,cashier:S.session.name,type:cart.type,
+    items:cart.items.map(i=>({...i})),subtotal:c.sub,discount:c.disc,svc:c.svc,total:c.total,
+    payments:payments.map(p=>({...p,amount:Math.min(p.amount,c.total+change-(sum-p.amount)>0?p.amount:p.amount)})),
+    change,status:'done',createdAt:nowISO()};
+  cart.items.forEach(i=>{const p=S.products.find(x=>x.id===i.id);if(p&&p.minStock!==undefined&&p.stock!==undefined){p.stock=Math.max(0,p.stock-i.qty);
+    S.moves.unshift({date:todayISO(),item:p.name,qty:-i.qty,reason:'Sale '+order.no});}});
+  order.status='new';
+  S.counterOrders.push(order);save();resetCart();closeModal();go('pos');
+  showReceipt(order);
+}
+function receiptHTML(o){
+  const pay={cash:'CASH',card:'CARD',bank:'BANK TRF',payhere:'PAYHERE'};
+  return `<div style="text-align:center"><b style="font-size:15px">${esc(S.business.name)}</b><br>${esc(S.business.address)}<br>Tel: ${esc(S.business.phone)}<br>--------------------------------</div>
+  <b>${o.type.toUpperCase()} · ${o.no}</b><br>${dISO(o.createdAt)} ${tISO(o.createdAt)} · Counter ${o.counter}<br>Cashier: ${esc(o.cashier)}<br>--------------------------------
+  ${o.items.map(i=>`<div style="display:flex;justify-content:space-between"><span>${i.qty} x ${esc(i.name)}</span><span>${num(i.price*i.qty)}</span></div>`).join('')}<br>--------------------------------
+  <div style="display:flex;justify-content:space-between"><span>Subtotal</span><span>${num(o.subtotal)}</span></div>
+  ${o.discount?`<div style="display:flex;justify-content:space-between"><span>Discount</span><span>-${num(o.discount)}</span></div>`:''}
+  ${o.svc?`<div style="display:flex;justify-content:space-between"><span>Service chg</span><span>${num(o.svc)}</span></div>`:''}
+  <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:bold"><span>TOTAL</span><span>Rs ${num(o.total)}</span></div>--------------------------------
+  ${o.payments.map(p=>`<div style="display:flex;justify-content:space-between"><span>${pay[p.method] || p.method}</span><span>${num(p.amount)}</span></div>`).join('')}
+  ${o.change?`<div style="display:flex;justify-content:space-between"><span>CHANGE</span><span>${num(o.change)}</span></div>`:''}<br>--------------------------------
+  <div style="text-align:center">Thank you! Please come again.<br>Powered by DMC POS</div>`;
+}
+function showReceipt(o){
+  openModal(`<div style="font-family:'Courier New',monospace;font-size:13px;border:1px dashed var(--border);padding:14px;border-radius:8px">${receiptHTML(o)}</div>
+  <div style="display:flex;gap:10px;margin-top:14px"><button class="btn" style="flex:1" onclick="printReceipt('${o.id}')">🖨️ Print Receipt</button>
+  <button class="btn-ghost btn" style="flex:1" onclick="closeModal()">Done</button></div>`);mTitle('Sale Complete ✔');
+}
+function printReceipt(id){const o=S.counterOrders.find(x=>x.id===id);
+  $('#print-area').className='';$('#print-area').innerHTML=receiptHTML(o);window.print();}
+
+/* ==================== CATERING ==================== */
+function orderTotal(o){
+  const items=o.lines.reduce((a,l)=>a+l.rate*(l.perPlate?o.event.guests:l.qty),0);
+  const extras=o.extras.reduce((a,l)=>a+l.rate*l.qty,0);
+  return items+extras-(o.discount||0);
+}
+function orderPaid(o){return o.payments.reduce((a,p)=>a+p.amount,0);}
+function orderBalance(o){return orderTotal(o)-orderPaid(o);}
+
+function renderCatering(el){
+  const list=[...S.cateringOrders].sort((a,b)=>b.event.date.localeCompare(a.event.date));
+  el.innerHTML=`<div class="page-head"><div><h2>Catering Orders</h2><div class="sub">${list.length} orders · quotations to completed events</div></div>
+  <button class="btn-accent" onclick="go('cateringNew')">+ New Order / Quotation</button></div>
+  <div class="card"><div class="tbl-wrap"><table>
+  <tr><th>Order</th><th>Customer / Event</th><th>Date</th><th>Guests</th><th>Value</th><th>Balance</th><th>Status</th><th></th></tr>
+  ${list.map(o=>`<tr style="cursor:pointer" onclick="go('cateringDetail','${o.id}')">
+    <td><b>${o.no}</b></td>
+    <td><b>${esc(o.customer)}</b><br><small style="color:var(--muted)">${esc(o.event.title)}</small></td>
+    <td>${dISO(o.event.date)}<br><small style="color:var(--muted)">${esc(o.event.time)}</small></td>
+    <td>${o.event.guests}</td><td>${fmt(orderTotal(o))}</td>
+    <td style="color:${orderBalance(o)>0?'var(--red)':'var(--green)'};font-weight:700">${fmt(orderBalance(o))}</td>
+    <td>${statusBadge(o.status)}</td><td>▸</td></tr>`).join('')||'<tr><td colspan="8" style="color:var(--muted)">No orders yet</td></tr>'}
+  </table></div></div>`;
+}
+
+let draft=null;
+function newDraft(){draft={customerId:S.customers[0].id,newCust:false,nc:{name:'',phone:'',address:''},
+  event:{title:'',date:dAdd(todayISO(),14),time:'6.00 PM',venue:'',guests:100,contactName:'',contactPhone:''},
+  lines:[],extras:[],discount:0,notes:''};}
+function renderCateringNew(el){
+  if(!draft)newDraft();
+  const g=draft.event.guests||0;
+  const menuItems=S.products.filter(p=>p.type==='catering');
+  const extraItems=S.products.filter(p=>p.type==='extra');
+  const itemsT=draft.lines.reduce((a,l)=>a+l.rate*(l.perPlate?g:l.qty),0);
+  const extrasT=draft.extras.reduce((a,l)=>a+l.rate*l.qty,0);
+  const total=itemsT+extrasT-draft.discount;
+  el.innerHTML=`<div class="page-head"><div><h2>New Catering Order</h2><div class="sub">Create quotation → confirm on deposit</div></div>
+  <div style="display:flex;gap:8px"><button class="btn-ghost btn" onclick="go('catering')">Cancel</button>
+  <button class="btn-accent" onclick="saveCatering()">💾 Save Order</button></div></div>
+  <div class="grid" style="grid-template-columns:1fr 1fr;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card"><h3 style="color:var(--primary);margin-bottom:12px">👤 Customer</h3>
+        <label>Existing customer</label>
+        <select onchange="draft.customerId=this.value;draft.newCust=this.value==='new';render()">
+          ${S.customers.map(c=>`<option value="${c.id}" ${draft.customerId===c.id?'selected':''}>${esc(c.name)} —${esc(c.phone)}</option>`).join('')}
+          <option value="new">＋ New customer…</option></select>
+        ${draft.newCust?`<div class="grid" style="grid-template-columns:1fr 1fr;margin-top:10px">
+          <div><label>Name *</label><input value="${esc(draft.nc.name)}" oninput="draft.nc.name=this.value"></div>
+          <div><label>Phone *</label><input value="${esc(draft.nc.phone)}" oninput="draft.nc.phone=this.value"></div>
+          <div style="grid-column:1/-1"><label>Address</label><input value="${esc(draft.nc.address)}" oninput="draft.nc.address=this.value"></div></div>`:''}
+      </div>
+      <div class="card"><h3 style="color:var(--primary);margin-bottom:12px">🎉 Event Details</h3>
+        <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
+          <div style="grid-column:1/-1"><label>Event title *</label><input placeholder="e.g. Silva Wedding Reception" value="${esc(draft.event.title)}" oninput="draft.event.title=this.value"></div>
+          <div><label>Date *</label><input type="date" value="${draft.event.date}" onchange="draft.event.date=this.value;render()"></div>
+          <div><label>Time</label><input value="${esc(draft.event.time)}" oninput="draft.event.time=this.value"></div>
+          <div><label>Guests *</label><input type="number" min="1" value="${draft.event.guests}" oninput="draft.event.guests=+this.value||0;render()"></div>
+          <div style="grid-column:1/-1"><label>Venue</label><input placeholder="Venue / address" value="${esc(draft.event.venue)}" oninput="draft.event.venue=this.value"></div>
+          <div><label>On-site contact</label><input value="${esc(draft.event.contactName)}" oninput="draft.event.contactName=this.value"></div>
+          <div><label>Contact phone</label><input value="${esc(draft.event.contactPhone)}" oninput="draft.event.contactPhone=this.value"></div>
+        </div></div>
+      <div class="card"><h3 style="color:var(--primary);margin-bottom:12px">🍛 Menu — priced per plate (× ${g} guests)</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${menuItems.map(p=>`<button class="cat-tab" onclick="addLine('${p.id}')">＋ ${esc(p.name)} ·${fmt(p.price)}</button>`).join('')}</div>
+        ${draft.lines.length?`<table style="margin-top:12px"><tr><th>Item</th><th>Rate</th><th>Qty</th><th>Amount</th><th></th></tr>
+        ${draft.lines.map((l,i)=>`<tr><td><b>${esc(l.name)}</b> <small style="color:var(--muted)">(${l.unit})</small></td><td>${fmt(l.rate)}</td>
+          <td>${l.perPlate?g+' (plates)':`<input type="number" min="1" value="${l.qty}" style="width:70px" onchange="draft.lines[${i}].qty=+this.value;render()">`}</td>
+          <td><b>${fmt(l.rate*(l.perPlate?g:l.qty))}</b></td>
+          <td><button class="btn-red" onclick="draft.lines.splice(${i},1);render()">✕</button></td></tr>`).join('')}</table>`:'<p style="color:var(--muted);margin-top:10px">No menu items selected yet.</p>'}
+      </div>
+      <div class="card"><h3 style="color:var(--primary);margin-bottom:12px">🚚 Extras & Services — per unit</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${extraItems.map(p=>`<button class="cat-tab" onclick="addExtra('${p.id}')">＋ ${esc(p.name)} ·${fmt(p.price)}</button>`).join('')}</div>
+        ${draft.extras.length?`<table style="margin-top:12px"><tr><th>Item</th><th>Rate</th><th>Qty</th><th>Amount</th><th></th></tr>
+        ${draft.extras.map((l,i)=>`<tr><td><b>${esc(l.name)}</b></td><td>${fmt(l.rate)}</td>
+          <td><input type="number" min="1" value="${l.qty}" style="width:70px" onchange="draft.extras[${i}].qty=+this.value;render()"></td>
+          <td><b>${fmt(l.rate*l.qty)}</b></td>
+          <td><button class="btn-red" onclick="draft.extras.splice(${i},1);render()">✕</button></td></tr>`).join('')}</table>`:''}
+      </div>
+    </div>
+    <div style="position:sticky;top:20px;display:flex;flex-direction:column;gap:14px">
+      <div class="card"><h3 style="color:var(--primary);margin-bottom:12px">🧾 Summary</h3>
+        <div class="cart-foot" style="border:none;background:none;padding:0">
+        <div class="ln"><span>Menu (${g} guests)</span><b>${fmt(itemsT)}</b></div>
+        <div class="ln"><span>Extras & services</span><b>${fmt(extrasT)}</b></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0">
+          <span>Discount</span><input type="number" min="0" value="${draft.discount}" style="width:110px" onchange="draft.discount=+this.value||0;render()"></div>
+        <div class="ln total"><span>TOTAL</span><span>${fmt(total)}</span></div>
+        <div class="ln" style="color:var(--muted)"><span>Per guest</span><span>${g?fmt(total/g):'—'}</span></div></div>
+        <div style="margin-top:10px"><label>Notes / dietary requirements</label>
+        <textarea rows="3" oninput="draft.notes=this.value">${esc(draft.notes)}</textarea></div>
+        <button class="btn-accent" style="width:100%;padding:14px;margin-top:12px;font-size:15px" onclick="saveCatering()">💾 Save as Quotation</button>
+      </div>
+    </div>
+  </div>`;
+}
+function addLine(id){if(draft.lines.find(l=>l.id===id))return toast('Already added',true);
+  const p=S.products.find(x=>x.id===id);draft.lines.push({id:p.id,name:p.name,unit:p.unit,rate:p.price,qty:1,perPlate:true});render();}
+function addExtra(id){if(draft.extras.find(l=>l.id===id))return toast('Already added',true);
+  const p=S.products.find(x=>x.id===id);draft.extras.push({id:p.id,name:p.name,unit:'each',rate:p.price,qty:1});render();}
+function saveCatering(){
+  let custId=draft.customerId,custName;
+  if(draft.newCust){if(!draft.nc.name||!draft.nc.phone)return toast('New customer needs name & phone',true);
+    const c={id:uid(),name:draft.nc.name,phone:draft.nc.phone,email:'',address:draft.nc.address,notes:''};
+    S.customers.push(c);custId=c.id;custName=c.name;}
+  else{const c=S.customers.find(x=>x.id===custId);custName=c?c.name:'Unknown';}
+  if(!draft.event.title)return toast('Event title is required',true);
+  if(!draft.lines.length&&!draft.extras.length)return toast('Add at least one menu item or extra',true);
+  const o={id:uid(),no:'CT'+(++S.seq.catering),customerId:custId,customer:custName,
+    event:{...draft.event},lines:draft.lines.map(l=>({...l})),extras:draft.extras.map(l=>({...l})),
+    discount:draft.discount,notes:draft.notes,status:'Quotation',payments:[],createdAt:nowISO()};
+  S.cateringOrders.push(o);save();draft=null;toast('Quotation '+o.no+' saved');
+  go('cateringDetail',o.id);
+}
+
+const CT_FLOW=['Quotation','Confirmed','Preparing','Ready','Delivered','Completed'];
+function renderCateringDetail(el,id){
+  const o=S.cateringOrders.find(x=>x.id===id);if(!o)return go('catering');
+  const g=o.event.guests,total=orderTotal(o),paid=orderPaid(o),bal=orderBalance(o);
+  const stepIx=CT_FLOW.indexOf(o.status);
+  el.innerHTML=`<div class="page-head"><div><h2>${esc(o.event.title)}</h2>
+    <div class="sub">Order ${o.no} · ${esc(o.customer)} · ${dISO(o.event.date)} ${esc(o.event.time)} · ${g} guests</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="printCT('${o.id}','quote')">🖨️ Quotation</button>
+      <button class="btn" onclick="printCT('${o.id}','invoice')">🖨️ Invoice</button>
+      ${o.status!=='Cancelled'&&stepIx<CT_FLOW.length-1?`<button class="btn-accent" onclick="nextStatus('${o.id}')">Mark ${CT_FLOW[stepIx+1]} ▸</button>`:''}
+      ${!['Cancelled','Completed'].includes(o.status)?`<button class="btn-red" onclick="cancelOrder('${o.id}')">Cancel</button>`:''}
+    </div></div>
+  <div class="steps" style="margin-bottom:16px">${CT_FLOW.map((s,i)=>`<span class="step ${i<stepIx?'done':''} ${i===stepIx?'cur':''}">${s}</span>`).join('')}
+    ${o.status==='Cancelled'?'<span class="step" style="background:var(--red);color:#fff">CANCELLED</span>':''}</div>
+  <div class="grid" style="grid-template-columns:1.5fr 1fr;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card"><h3 style="color:var(--primary);margin-bottom:10px">📋 Order Details</h3>
+      <table><tr><th>Item</th><th>Rate</th><th>Qty</th><th>Amount</th></tr>
+      ${o.lines.map(l=>`<tr><td><b>${esc(l.name)}</b></td><td>${fmt(l.rate)}</td><td>${l.perPlate?g+' plates':l.qty}</td><td><b>${fmt(l.rate*(l.perPlate?g:l.qty))}</b></td></tr>`).join('')}
+      ${o.extras.map(l=>`<tr><td><b>${esc(l.name)}</b> <span class="badge b-gray">extra</span></td><td>${fmt(l.rate)}</td><td>${l.qty}</td><td><b>${fmt(l.rate*l.qty)}</b></td></tr>`).join('')}
+      <tr><td colspan="3" style="text-align:right">Subtotal</td><td><b>${fmt(total+(o.discount||0))}</b></td></tr>
+      ${o.discount?`<tr><td colspan="3" style="text-align:right;color:var(--red)">Discount</td><td style="color:var(--red)">− ${fmt(o.discount)}</td></tr>`:''}
+      <tr><td colspan="3" style="text-align:right;font-size:16px"><b>TOTAL</b></td><td style="font-size:16px;color:var(--primary)"><b>${fmt(total)}</b></td></tr></table>
+      ${o.notes?`<div class="card" style="box-shadow:none;background:#fdf6ec;margin-top:10px;border:1px solid #f3ddb9"><b>📝 Notes:</b> ${esc(o.notes)}</div>`:''}
+      <div style="margin-top:10px;color:var(--muted);font-size:13px">📍 ${esc(o.event.venue||'Venue TBA')} · ☎ ${esc(o.event.contactName||'')} ${esc(o.event.contactPhone||'')}</div>
+      </div>
+    </div>
+    <div style="position:sticky;top:20px">
+      <div class="card"><h3 style="color:var(--primary);margin-bottom:12px">💳 Payments</h3>
+        <div class="cart-foot" style="border:none;background:none;padding:0">
+          <div class="ln"><span>Order total</span><b>${fmt(total)}</b></div>
+          <div class="ln"><span>Paid</span><b style="color:var(--green)">${fmt(paid)}</b></div>
+          <div class="ln total"><span>BALANCE</span><span style="color:${bal>0?'var(--red)':'var(--green)'}">${fmt(bal)}</span></div>
+        </div>
+        ${bal>0&&o.status!=='Cancelled'?`<button class="btn-green" style="width:100%;padding:12px;margin-top:10px" onclick="addPaymentModal('${o.id}')">＋ Record Payment</button>`:''}
+        <div style="margin-top:12px">${o.payments.length?o.payments.map(p=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);font-size:13px">
+          <span>${{cash:'💵',card:'💳',bank:'🏦',payhere:'🌐'}[p.method]||''} ${p.method.toUpperCase()}${p.ref?' · '+esc(p.ref):''}<br><small style="color:var(--muted)">${dISO(p.date || o.createdAt)}</small></span><b>${fmt(p.amount)}</b></div>`).join(''):'<p style="color:var(--muted);font-size:13px">No payments recorded yet.</p>'}</div>
+      </div>
+    </div>
+  </div>`;
+}
+function nextStatus(id){const o=S.cateringOrders.find(x=>x.id===id);
+  o.status=CT_FLOW[CT_FLOW.indexOf(o.status)+1];save();render();toast('Status: '+o.status);}
+function cancelOrder(id){if(!confirm('Cancel this order?'))return;const o=S.cateringOrders.find(x=>x.id===id);o.status='Cancelled';save();render();}
+function addPaymentModal(id){const o=S.cateringOrders.find(x=>x.id===id);const bal=orderBalance(o);
+  openModal(`<h3>Record Payment — ${o.no}</h3>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+  <div><label>Method</label><select id="cp-m">${['cash','card','bank','payhere'].filter(m=>S.business.methods[m]).map(m=>`<option value="${m}">${{cash:'💵 Cash',card:'💳 Card Terminal',bank:'🏦 Bank Transfer',payhere:'🌐 PayHere'}[m]}</option>`).join('')}</select></div>
+  <div><label>Amount (Rs)</label><input type="number" id="cp-a" value="${bal.toFixed(2)}"></div>
+  <div style="grid-column:1/-1"><label>Reference / note</label><input id="cp-r" placeholder="e.g. TRF-8871 / txn id"></div></div>
+  <button class="btn-green" style="width:100%;padding:13px" onclick="savePayment('${id}')">Save Payment</button>`);
+  mTitle('Add Payment');}
+function savePayment(id){const o=S.cateringOrders.find(x=>x.id===id);
+  const amt=parseFloat($('#cp-a').value)||0;if(amt<=0)return toast('Enter a valid amount',true);
+  o.payments.push({method:$('#cp-m').value,amount:amt,ref:$('#cp-r').value,date:nowISO()});
+  if(o.status==='Quotation')o.status='Confirmed';
+  save();closeModal();render();toast('Payment recorded — '+fmt(amt));}
+function printCT(id,kind){const o=S.cateringOrders.find(x=>x.id===id);const g=o.event.guests;const total=orderTotal(o);const paid=orderPaid(o);
+  const rows=[...o.lines.map(l=>({n:l.name,r:l.rate,q:l.perPlate?g+' plates':l.qty,a:l.rate*(l.perPlate?g:l.qty)})),
+    ...o.extras.map(l=>({n:l.name,r:l.rate,q:l.qty,a:l.rate*l.qty}))];
+  $('#print-area').className='a4';
+  $('#print-area').innerHTML=`<div style="display:flex;justify-content:space-between;border-bottom:3px solid #16324f;padding-bottom:12px">
+    <div><h1 style="color:#16324f;margin:0">🍛 ${esc(S.business.name)}</h1>
+    <small>${esc(S.business.address)} · Tel: ${esc(S.business.phone)} · ${esc(S.business.email)}</small></div>
+    <div style="text-align:right"><h2 style="margin:0;color:#e07b39">${kind==='quote'?'QUOTATION':'INVOICE'}</h2><b>${o.no}</b><br>${dISO(nowISO())}</div></div>
+  <table style="width:100%;border-collapse:collapse;margin:16px 0">
+  <tr><td style="border:none;width:50%"><b>Customer:</b><br>${esc(o.customer)}<br>${esc((S.customers.find(c=>c.id===o.customerId)||{}).address||'')}</td>
+  <td style="border:none"><b>Event:</b><br>${esc(o.event.title)}<br>${dISO(o.event.date)} at ${esc(o.event.time)}<br>${esc(o.event.venue||'')}<br>Guests: <b>${g}</b></td></tr></table>
+  <table style="width:100%;border-collapse:collapse">
+  <tr style="background:#16324f;color:#fff"><th style="padding:8px">Description</th><th>Rate (Rs)</th><th>Qty</th><th>Amount (Rs)</th></tr>
+  ${rows.map(r=>`<tr><td style="padding:8px;border-bottom:1px solid #ccc">${esc(r.n)}</td><td style="border-bottom:1px solid #ccc">${num(r.r)}</td><td style="border-bottom:1px solid #ccc">${r.q}</td><td style="border-bottom:1px solid #ccc">${num(r.a)}</td></tr>`).join('')}
+  ${o.discount?`<tr><td colspan="3" style="text-align:right;padding:6px">Discount</td><td style="padding:6px">− ${num(o.discount)}</td></tr>`:''}
+  <tr><td colspan="3" style="text-align:right;padding:10px;font-size:16px"><b>TOTAL</b></td><td style="padding:10px;font-size:16px"><b>Rs ${num(total)}</b></td></tr></table>`;
+  window.print();}
+
+function renderCal(el){
+  const m=new Date(UI.calMonth);const y=m.getFullYear(),mo=m.getMonth();
+  const first=new Date(y,mo,1);const startDow=(first.getDay()+6)%7;
+  const days=new Date(y,mo+1,0).getDate();
+  const cells=[];
+  for(let i=0;i<startDow;i++)cells.push(null);
+  for(let d=1;d<=days;d++)cells.push(new Date(y,mo,d).toISOString().slice(0,10));
+  while(cells.length%7)cells.push(null);
+  const evs=d=>S.cateringOrders.filter(o=>o.event.date===d&&o.status!=='Cancelled');
+  el.innerHTML=`<div class="page-head"><div><h2>${m.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</h2><div class="sub">Catering event calendar</div></div>
+  <div style="display:flex;gap:8px"><button class="btn-ghost btn" onclick="UI.calMonth=new Date(${y},${mo-1},1);render()">◄ Prev</button>
+  <button class="btn-ghost btn" onclick="UI.calMonth=new Date();render()">Today</button>
+  <button class="btn-ghost btn" onclick="UI.calMonth=new Date(${y},${mo+1},1);render()">Next ►</button></div></div>
+  <div class="card"><div class="cal-grid">
+  ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+  ${cells.map(d=>d?`<div class="cal-day ${d===todayISO()?'today':''}">
+    <div class="dnum">${+d.slice(8)}</div>${evs(d).map(o=>`<div class="cal-ev st${CT_FLOW.indexOf(o.status)}" onclick="go('cateringDetail','${o.id}')">${esc(o.event.title)} (${o.event.guests})</div>`).join('')}</div>`
+    :'<div class="cal-day dim"></div>').join('')}</div></div>`;
+}
+
+function renderKitchen(el){
+  const tickets=S.counterOrders.filter(o=>o.status!=='done').slice().reverse();
+  const prodOrders=S.cateringOrders.filter(o=>['Confirmed','Preparing','Ready'].includes(o.status)).sort((a,b)=>a.event.date.localeCompare(b.event.date));
+  el.innerHTML=`<div class="page-head"><div><h2>Kitchen Display</h2><div class="sub">Counter tickets & catering production</div></div>
+  <button class="btn" onclick="render()">🔄 Refresh</button></div>
+  <div class="card" style="margin-bottom:16px"><h3 style="color:var(--primary);margin-bottom:12px">🍔 Counter Tickets</h3>
+    <div class="kt-cols">${tickets.map(o=>`<div class="kt-ticket ${o.status==='ready'?'ready':''}${o.status==='done'?'done':''}">
+      <div style="display:flex;justify-content:space-between"><h4>${o.no} ·${o.type}</h4><small style="color:var(--muted)">${tISO(o.createdAt)}</small></div>
+      <div class="kt-items">${o.items.map(i=>`<div><span>${i.qty} × ${esc(i.name)}</span><span></span></div>`).join('')}</div>
+      <div style="display:flex;gap:6px">
+      ${o.status==='new'?`<button class="btn-accent" style="flex:1" onclick="ktStatus('${o.id}','preparing')">Start</button>`:''}
+      ${o.status==='preparing'?`<button class="btn-green" style="flex:1" onclick="ktStatus('${o.id}','ready')">Ready</button>`:''}
+      ${o.status==='ready'?`<button class="btn" style="flex:1" onclick="ktStatus('${o.id}','done')">✔ Served</button>`:''}
+      </div></div>`).join('')||'<p style="color:var(--muted)">No open counter tickets. 🎉</p>'}</div></div>`;
+}
+function ktStatus(id,st){const o=S.counterOrders.find(x=>x.id===id);o.status=st;save();render();}
+
+let invTab='items';
+function renderInv(el){
+  const tabs=[['items','📦 Stock Items'],['recipes','📖 Recipes'],['shopping','🛒 Shopping List']];
+  el.innerHTML=`<div class="page-head"><div><h2>Inventory</h2><div class="sub">Ingredients, recipes & auto-calculated requirements</div></div></div>
+  <div class="cat-tabs" style="margin-bottom:14px">${tabs.map(([k,l])=>`<button class="cat-tab ${invTab===k?'active':''}" onclick="invTab='${k}';render()">${l}</button>`).join('')}</div>
+  <div id="inv-body"></div>`;
+  const b=$('#inv-body');
+  if(invTab==='items'){
+    b.innerHTML=`<div class="page-head" style="margin-bottom:10px"><div><h3 style="color:var(--primary)">Stock Items</h3><div class="sub">${S.inventory.length} ingredients in inventory</div></div>${isAdmin()?'<button class="btn-accent" onclick="openInventoryModal()">＋ Add Ingredient</button>':''}</div><div class="card"><div class="tbl-wrap"><table>
+    <tr><th>Ingredient</th><th>Unit</th><th>Stock</th><th>Min</th><th>Unit Cost</th><th>Value</th><th>Status</th><th></th></tr>
+    ${S.inventory.map(i=>`<tr><td><b>${esc(i.name)}</b></td><td>${i.unit}</td>
+      <td style="font-weight:700;color:${i.stock<=i.minStock?'var(--red)':'inherit'}">${i.stock}</td><td>${i.minStock}</td>
+      <td>${fmt(i.cost)}</td><td>${fmt(i.stock*i.cost)}</td>
+      <td>${i.stock<=i.minStock?'<span class="badge b-red">LOW</span>':'<span class="badge b-green">OK</span>'}</td>
+      <td><button class="btn-ghost btn" onclick="adjustInv('${i.id}')">Adjust</button> ${isAdmin()?`<button class="btn-ghost btn" onclick="openInventoryModal('${i.id}')">✏️</button> <button class="btn-red" onclick="deleteInventory('${i.id}')">🗑️</button>`:''}</td></tr>`).join('')}</table></div></div>`;
+  }else if(invTab==='recipes'){
+    b.innerHTML=`<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    ${Object.entries(S.recipes).map(([pid,ings])=>{const p=S.products.find(x=>x.id===pid);if(!p)return'';
+      const cost=ings.reduce((a,[iid,q])=>a+q*(S.inventory.find(i=>i.id===iid)||{cost:0}).cost,0);
+      return `<div class="card"><h4 style="color:var(--primary)">${esc(p.name)}</h4>
+      <small style="color:var(--muted)">per plate ingredient cost</small>
+      <table style="margin-top:8px">${ings.map(([iid,q])=>{const inv=S.inventory.find(i=>i.id===iid);
+        return `<tr><td style="padding:4px 0">${esc(inv.name)}</td><td style="text-align:right">${q} ${inv.unit}</td></tr>`;}).join('')}</table>
+      <div style="border-top:2px solid var(--border);margin-top:8px;padding-top:8px;display:flex;justify-content:space-between;align-items:center">
+        <span><b>Cost/plate</b> <b style="color:var(--green)">${fmt(cost)}</b></span>
+        ${isAdmin()?`<span><button class="btn-ghost btn" onclick="openRecipeModal('${pid}')">✏️ Edit Recipe</button><button class="btn-red" onclick="deleteRecipe('${pid}')">🗑️</button></span>`:''}
+      </div></div>`;}).join('')}
+    </div>`;
+  }else{
+    b.innerHTML=`<div class="card"><h3 style="color:var(--primary);margin-bottom:10px">Shopping List</h3><p style="color:var(--muted)">Calculated based on upcoming events.</p></div>`;
+  }
+}
+function adjustInv(id){const i=S.inventory.find(x=>x.id===id);
+  openModal(`<h3>Adjust Stock — ${esc(i.name)}</h3>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+  <div><label>Change (+/−)</label><input type="number" id="adj-q" placeholder="e.g. 50 or -3"></div>
+  <div><label>Reason</label><select id="adj-r"><option>Purchase</option><option>Waste</option><option>Stock Count</option><option>Correction</option></select></div></div>
+  <button class="btn-accent" style="width:100%;padding:12px;margin-top:12px" onclick="saveAdj('${id}')">Save Adjustment</button>`);
+  mTitle('Stock Adjustment');}
+function saveAdj(id){const i=S.inventory.find(x=>x.id===id);const q=parseFloat($('#adj-q').value)||0;
+  i.stock=Math.max(0,i.stock+q);S.moves.unshift({date:todayISO(),item:i.name,qty:q,reason:$('#adj-r').value});
+  save();closeModal();render();toast('Stock updated');}
+
+function renderCust(el){
+  el.innerHTML=`<div class="page-head"><div><h2>Customers</h2><div class="sub">${S.customers.length} customer profiles</div></div></div>
+  <div class="card"><div class="tbl-wrap"><table>
+  <tr><th>Name</th><th>Phone</th><th>Address</th></tr>
+  ${S.customers.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone)}</td><td>${esc(c.address||'—')}</td></tr>`).join('')}
+  </table></div></div>`;
+}
+
+/* ---------- ADMIN REPORTS ---------- */
+function reportOrders(){
+  const from=UI.rptFrom||dAdd(todayISO(),-6), to=UI.rptTo||todayISO();
+  return S.counterOrders.filter(o=>{const d=(o.createdAt||'').slice(0,10);return d>=from&&d<=to;});
+}
+function renderRpt(el){
+  if(!isAdmin()) return el.innerHTML='<div class="card"><h3>Access denied</h3><p>Reports are available to Owner / Admin.</p></div>';
+  const orders=reportOrders();
+  const revenue=orders.reduce((a,o)=>a+(+o.total||0),0);
+  const count=orders.length;
+  const avg=count?revenue/count:0;
+  const payments={cash:0,card:0,bank:0,payhere:0};
+  orders.forEach(o=>(o.payments||[]).forEach(p=>payments[p.method]=(payments[p.method]||0)+(+p.amount||0)));
+  const byCounter={};
+  orders.forEach(o=>byCounter[o.counter]=(byCounter[o.counter]||0)+(+o.total||0));
+  const items={};
+  orders.forEach(o=>(o.items||[]).forEach(i=>{
+    items[i.name]=(items[i.name]||0)+(+i.qty||0);
+  }));
+  const topItems=Object.entries(items).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  el.innerHTML=`<div class="page-head"><div><h2>Reports</h2><div class="sub">Admin sales, payments, counters and top-selling items</div></div>
+    <button class="btn-ghost btn" onclick="window.print()">🖨️ Print Report</button></div>
+  <div class="card" style="margin-bottom:14px"><div class="grid" style="grid-template-columns:1fr 1fr auto;align-items:end">
+    <div><label>From</label><input type="date" value="${from}" onchange="UI.rptFrom=this.value;render()"></div>
+    <div><label>To</label><input type="date" value="${to}" onchange="UI.rptTo=this.value;render()"></div>
+    <button class="btn-accent" onclick="UI.rptFrom=dAdd(todayISO(),-6);UI.rptTo=todayISO();render()">Last 7 Days</button>
+  </div></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:14px">
+    <div class="card"><small>Sales</small><h2>${fmt(revenue)}</h2><div class="sub">${count} transactions</div></div>
+    <div class="card"><small>Average Sale</small><h2>${fmt(avg)}</h2><div class="sub">per transaction</div></div>
+    <div class="card"><small>Counter Revenue</small><h2>${Object.keys(byCounter).length}</h2><div class="sub">active counters in report</div></div>
+    <div class="card"><small>Catering Orders</small><h2>${S.cateringOrders.filter(o=>o.event.date>=from&&o.event.date<=to).length}</h2><div class="sub">events in period</div></div>
+  </div>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+    <div class="card"><h3 style="color:var(--primary);margin-bottom:10px">💳 Payment Summary</h3>
+      ${Object.entries(payments).map(([m,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span>${m.toUpperCase()}</span><b>${fmt(v)}</b></div>`).join('')}</div>
+    <div class="card"><h3 style="color:var(--primary);margin-bottom:10px">🛒 Revenue by Counter</h3>
+      ${Object.entries(byCounter).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span>Counter ${c}</span><b>${fmt(v)}</b></div>`).join('')||'<p style="color:var(--muted)">No sales for this period.</p>'}</div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3 style="color:var(--primary);margin-bottom:10px">🏆 Top Counter Items</h3>
+    <div class="tbl-wrap"><table><tr><th>Item</th><th>Qty Sold</th></tr>
+    ${topItems.map(([name,qty])=>`<tr><td><b>${esc(name)}</b></td><td>${qty}</td></tr>`).join('')||'<tr><td colspan="2" style="color:var(--muted)">No item sales for this period.</td></tr>'}</table></div></div>`;
+}
+
+/* ---------- ADMIN SETTINGS / MENU MANAGEMENT ---------- */
+let settingsTab='business';
+function renderSettings(el){
+  if(!isAdmin()) return el.innerHTML='<div class="card"><h3>Access denied</h3><p>Settings are available to Owner / Admin.</p></div>';
+  const tabs=[['business','🏢 Business'],['counterItems','🛒 Counter Items'],['cateringMenu','🍽️ Catering Menu'],['extras','➕ Extras'],['inventory','📦 Inventory'],['recipes','📖 Recipes'],['counters','🖥️ Counters'],['payments','💳 Payments']];
+  el.innerHTML=`<div class="page-head"><div><h2>Admin Settings</h2><div class="sub">Manage menus, prices, counter items, counters and business settings</div></div></div>
+  <div class="cat-tabs" style="margin-bottom:14px">${tabs.map(([k,l])=>`<button class="cat-tab ${settingsTab===k?'active':''}" onclick="settingsTab='${k}';render()">${l}</button>`).join('')}</div><div id="settings-body"></div>`;
+  const b=$('#settings-body');
+  if(settingsTab==='business') return renderBusinessSettings(b);
+  if(settingsTab==='counterItems') return renderProductManager(b,'counter','Counter Items');
+  if(settingsTab==='cateringMenu') return renderProductManager(b,'catering','Catering Menu');
+  if(settingsTab==='extras') return renderProductManager(b,'extra','Extras');
+  if(settingsTab==='inventory') return renderAdminInventory(b);
+  if(settingsTab==='recipes') return renderAdminRecipes(b);
+  if(settingsTab==='counters') return renderCounterSettings(b);
+  return renderPaymentSettings(b);
+}
+function renderBusinessSettings(b){
+  b.innerHTML=`<div class="card"><h3 style="color:var(--primary);margin-bottom:12px">Business Information</h3>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+    <div><label>Business Name</label><input id="bs-name" value="${esc(S.business.name)}"></div>
+    <div><label>Phone</label><input id="bs-phone" value="${esc(S.business.phone)}"></div>
+    <div style="grid-column:1/-1"><label>Address</label><input id="bs-address" value="${esc(S.business.address)}"></div>
+    <div><label>Email</label><input id="bs-email" value="${esc(S.business.email)}"></div>
+    <div><label>TIN</label><input id="bs-tin" value="${esc(S.business.tin||'')}"></div>
+    <div><label>Service Charge %</label><input id="bs-service" type="number" min="0" step="0.1" value="${S.business.serviceChargePct||0}"></div>
+    <div><label>Active Counters</label><input id="bs-counters" type="number" min="1" max="20" value="${S.business.counters||1}"></div>
+  </div>
+  <button class="btn-accent" style="margin-top:14px" onclick="saveBusinessSettings()">💾 Save Business Settings</button></div>`;
+}
+function saveBusinessSettings(){
+  S.business.name=$('#bs-name').value.trim()||S.business.name;
+  S.business.phone=$('#bs-phone').value.trim();S.business.address=$('#bs-address').value.trim();S.business.email=$('#bs-email').value.trim();S.business.tin=$('#bs-tin').value.trim();
+  S.business.serviceChargePct=Math.max(0,parseFloat($('#bs-service').value)||0);
+  S.business.counters=Math.min(20,Math.max(1,parseInt($('#bs-counters').value)||1));
+  save();refreshLoginCounters();render();toast('Business settings saved');
+}
+function productTypeLabel(type){return type==='counter'?'Counter Item':type==='catering'?'Catering Menu':'Extra';}
+function renderProductManager(b,type,title){
+  const list=S.products.filter(p=>p.type===type);
+  b.innerHTML=`<div class="page-head" style="margin-bottom:10px"><div><h3 style="color:var(--primary)">${title}</h3><div class="sub">${list.length} items · Add, edit, price or remove products</div></div><button class="btn-accent" onclick="openProductModal('${type}')">＋ Add ${productTypeLabel(type)}</button></div>
+  <div class="card"><div class="tbl-wrap"><table><tr><th>Name</th><th>Category</th><th>Price</th><th>Unit</th>${type==='counter'?'<th>Stock</th>':''}<th>Actions</th></tr>
+  ${list.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.cat)}</td><td>${fmt(p.price)}</td><td>${esc(p.unit)}</td>${type==='counter'?`<td>${p.stock===undefined?'∞':p.stock}</td>`:''}<td><button class="btn-ghost btn" onclick="openProductModal('${type}','${p.id}')">✏️ Edit</button> <button class="btn-red" onclick="deleteProduct('${p.id}')">🗑️ Delete</button></td></tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted)">No items yet. Add your first item.</td></tr>'}</table></div></div>`;
+}
+function openProductModal(type,id){
+  const p=id?S.products.find(x=>x.id===id):null;
+  openModal(`<h3>${p?'Edit':'Add'} ${productTypeLabel(type)}</h3>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+    <div><label>Name</label><input id="pm-name" value="${esc(p?.name||'')}"></div>
+    <div><label>Category</label><input id="pm-cat" value="${esc(p?.cat||(type==='counter'?'Short Eats':type==='catering'?'Main Menu':'Extras'))}"></div>
+    <div><label>Price (Rs)</label><input id="pm-price" type="number" min="0" step="0.01" value="${p?.price??''}"></div>
+    <div><label>Unit</label><input id="pm-unit" value="${esc(p?.unit||(type==='catering'?'per plate':'each'))}"></div>
+    ${type==='counter'?`<div><label>Opening Stock</label><input id="pm-stock" type="number" min="0" value="${p?.stock??0}"></div><div><label>Minimum Stock</label><input id="pm-min" type="number" min="0" value="${p?.minStock??0}"></div>`:''}
+    ${type==='catering'?`<div><label>Recipe Enabled</label><select id="pm-recipe"><option value="0">No</option><option value="1" ${p?.recipe?'selected':''}>Yes</option></select></div>`:''}
+  </div><button class="btn-accent" style="width:100%;padding:13px;margin-top:14px" onclick="saveProduct('${type}','${id||''}')">💾 Save Item</button>`);
+  mTitle(p?'Edit Menu Item':'Add Menu Item');
+}
+function saveProduct(type,id){
+  const name=$('#pm-name').value.trim();const cat=$('#pm-cat').value.trim()||'General';const price=Math.max(0,parseFloat($('#pm-price').value)||0);const unit=$('#pm-unit').value.trim()||'each';
+  if(!name)return toast('Enter an item name',true);if(price<=0)return toast('Enter a valid price',true);
+  let p=id?S.products.find(x=>x.id===id):null;
+  if(!p){p={id:uid(),name,cat,price,type,unit};S.products.push(p);}else{Object.assign(p,{name,cat,price,unit});}
+  if(type==='counter'){p.stock=Math.max(0,parseFloat($('#pm-stock').value)||0);p.minStock=Math.max(0,parseFloat($('#pm-min').value)||0);}
+  if(type==='catering')p.recipe=$('#pm-recipe').value==='1';
+  save();closeModal();render();toast(id?'Item updated':'New item added');
+}
+function deleteProduct(id){
+  const p=S.products.find(x=>x.id===id);if(!p)return;
+  if(!confirm('Delete '+p.name+'? This removes it from the POS/menu.'))return;
+  S.products=S.products.filter(x=>x.id!==id);if(S.recipes)delete S.recipes[id];save();render();toast('Item deleted');
+}
+function renderAdminInventory(b){
+  const list=S.inventory||[];
+  b.innerHTML=`<div class="page-head" style="margin-bottom:10px"><div><h3 style="color:var(--primary)">Inventory Items</h3><div class="sub">Add, edit, delete ingredients and control stock levels/costs.</div></div><button class="btn-accent" onclick="openInventoryModal()">＋ Add Ingredient</button></div>
+  <div class="card"><div class="tbl-wrap"><table><tr><th>Ingredient</th><th>Unit</th><th>Stock</th><th>Minimum</th><th>Cost</th><th>Value</th><th>Actions</th></tr>
+  ${list.map(i=>`<tr><td><b>${esc(i.name)}</b></td><td>${esc(i.unit)}</td><td>${i.stock}</td><td>${i.minStock}</td><td>${fmt(i.cost)}</td><td>${fmt(i.stock*i.cost)}</td><td><button class="btn-ghost btn" onclick="openInventoryModal('${i.id}')">✏️ Edit</button> <button class="btn-red" onclick="deleteInventory('${i.id}')">🗑️ Delete</button></td></tr>`).join('')||'<tr><td colspan="7" style="color:var(--muted)">No ingredients yet.</td></tr>'}</table></div></div>`;
+}
+function openInventoryModal(id){
+  const i=id?S.inventory.find(x=>x.id===id):null;
+  openModal(`<h3>${i?'Edit':'Add'} Ingredient</h3><div class="grid" style="grid-template-columns:1fr 1fr">
+    <div><label>Ingredient Name</label><input id="im-name" value="${esc(i?.name||'')}"></div>
+    <div><label>Unit</label><input id="im-unit" value="${esc(i?.unit||'kg')}"></div>
+    <div><label>Current Stock</label><input id="im-stock" type="number" min="0" step="0.01" value="${i?.stock??0}"></div>
+    <div><label>Minimum Stock</label><input id="im-min" type="number" min="0" step="0.01" value="${i?.minStock??0}"></div>
+    <div><label>Unit Cost (Rs)</label><input id="im-cost" type="number" min="0" step="0.01" value="${i?.cost??0}"></div>
+  </div><button class="btn-accent" style="width:100%;padding:13px;margin-top:14px" onclick="saveInventory('${id||''}')">💾 Save Ingredient</button>`);
+  mTitle(i?'Edit Ingredient':'Add Ingredient');
+}
+function saveInventory(id){
+  const name=$('#im-name').value.trim(),unit=$('#im-unit').value.trim()||'kg';
+  if(!name)return toast('Enter an ingredient name',true);
+  const data={name,unit,stock:Math.max(0,parseFloat($('#im-stock').value)||0),minStock:Math.max(0,parseFloat($('#im-min').value)||0),cost:Math.max(0,parseFloat($('#im-cost').value)||0)};
+  let i=id?S.inventory.find(x=>x.id===id):null;
+  if(i) Object.assign(i,data); else {S.inventory.push({id:uid(),...data});}
+  save();closeModal();render();toast(id?'Ingredient updated':'Ingredient added');
+}
+function deleteInventory(id){
+  const i=S.inventory.find(x=>x.id===id);if(!i)return;
+  if(!confirm('Delete '+i.name+'? Recipes using this ingredient will also lose that ingredient.'))return;
+  S.inventory=S.inventory.filter(x=>x.id!==id);
+  Object.keys(S.recipes||{}).forEach(pid=>{S.recipes[pid]=(S.recipes[pid]||[]).filter(([iid])=>iid!==id);});
+  save();render();toast('Ingredient deleted');
+}
+function renderAdminRecipes(b){
+  const rows=Object.entries(S.recipes||{}).filter(([pid])=>S.products.some(p=>p.id===pid&&p.type==='catering'));
+  b.innerHTML=`<div class="page-head" style="margin-bottom:10px"><div><h3 style="color:var(--primary)">Recipe Management</h3><div class="sub">Change recipes, ingredients, quantities and cost per plate.</div></div><button class="btn-accent" onclick="openRecipeModal()">＋ Create Recipe</button></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+  ${rows.map(([pid,ings])=>{const p=S.products.find(x=>x.id===pid);const cost=(ings||[]).reduce((a,[iid,q])=>a+q*(S.inventory.find(i=>i.id===iid)?.cost||0),0);return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><div><h4 style="color:var(--primary)">${esc(p.name)}</h4><small class="sub">${(ings||[]).length} ingredients · Cost/plate ${fmt(cost)}</small></div><div style="display:flex;gap:6px"><button class="btn-ghost btn" onclick="openRecipeModal('${pid}')">✏️ Edit</button><button class="btn-red" onclick="deleteRecipe('${pid}')">🗑️</button></div></div><table style="margin-top:10px">${(ings||[]).map(([iid,q])=>{const i=S.inventory.find(x=>x.id===iid);return `<tr><td>${esc(i?.name||'Deleted ingredient')}</td><td style="text-align:right">${q} ${esc(i?.unit||'')}</td></tr>`}).join('')||'<tr><td style="color:var(--muted)">No ingredients</td></tr>'}</table></div>`}).join('')||'<div class="card"><p>No recipes yet. Create one from a catering menu item.</p></div>'}
+  </div>`;
+}
+function openRecipeModal(pid){
+  const catering=S.products.filter(p=>p.type==='catering');
+  const p=pid?S.products.find(x=>x.id===pid):null;
+  const existing=pid?(S.recipes[pid]||[]):[];
+  openModal(`<h3>${p?'Edit':'Create'} Recipe</h3>
+    <div><label>Catering Menu Item</label><select id="rm-product" ${p?'disabled':''}>${catering.map(x=>`<option value="${x.id}" ${x.id===pid?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
+    <div id="recipe-lines" style="margin-top:12px"></div>
+    <button class="btn-ghost btn" style="margin-top:10px" onclick="addRecipeLine()">＋ Add Ingredient</button>
+    <button class="btn-accent" style="width:100%;padding:13px;margin-top:14px" onclick="saveRecipe('${pid||''}')">💾 Save Recipe</button>`);
+  mTitle(p?'Edit Recipe':'Create Recipe');
+  window._recipeDraft=existing.map(([iid,q])=>({iid,q}));
+  renderRecipeLines();
+}
+function renderRecipeLines(){
+  const el=$('#recipe-lines');if(!el)return;
+  const inv=S.inventory||[];
+  el.innerHTML=(window._recipeDraft||[]).map((r,idx)=>`<div class="grid" style="grid-template-columns:1fr 120px 42px;align-items:end;margin-bottom:8px"><div><label>Ingredient</label><select onchange="_recipeDraft[${idx}].iid=this.value">${inv.map(i=>`<option value="${i.id}" ${i.id===r.iid?'selected':''}>${esc(i.name)}</option>`).join('')}</select></div><div><label>Qty</label><input type="number" min="0" step="0.001" value="${r.q}" onchange="_recipeDraft[${idx}].q=parseFloat(this.value)||0"></div><button class="btn-red" onclick="_recipeDraft.splice(${idx},1);renderRecipeLines()">×</button></div>`).join('')||'<p style="color:var(--muted)">No ingredients added yet.</p>';
+}
+function addRecipeLine(){
+  if(!S.inventory.length)return toast('Add inventory ingredients first',true);
+  window._recipeDraft=window._recipeDraft||[];window._recipeDraft.push({iid:S.inventory[0].id,q:0.1});renderRecipeLines();
+}
+function saveRecipe(oldPid){
+  const pid=oldPid||$('#rm-product').value;if(!pid)return toast('Select a catering item',true);
+  const lines=(window._recipeDraft||[]).filter(r=>r.iid&&r.q>0).map(r=>[r.iid,r.q]);
+  if(!lines.length)return toast('Add at least one ingredient',true);
+  S.recipes=S.recipes||{};S.recipes[pid]=lines;
+  const p=S.products.find(x=>x.id===pid);if(p)p.recipe=true;
+  save();closeModal();render();toast('Recipe saved');
+}
+function deleteRecipe(pid){if(!isAdmin())return;if(!confirm('Delete this recipe?'))return;delete S.recipes[pid];const p=S.products.find(x=>x.id===pid);if(p)p.recipe=false;save();render();toast('Recipe deleted');}
+function renderCounterSettings(b){
+  const n=Math.min(20,Math.max(1,parseInt(S.business.counters)||1));
+  b.innerHTML=`<div class="card"><h3 style="color:var(--primary);margin-bottom:6px">Counter Management</h3><p class="sub">Set how many sales counters are available. Counter buttons on the login screen update automatically.</p>
+  <div class="grid" style="grid-template-columns:1fr 1fr"><div><label>Number of Counters (1–20)</label><input id="counter-count" type="number" min="1" max="20" value="${n}"></div><div><label>Current Status</label><input value="${n} counters enabled" disabled></div></div>
+  <button class="btn-accent" style="margin-top:14px" onclick="saveCounterCount()">💾 Save Counter Settings</button></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:14px">${Array.from({length:n},(_,i)=>`<div class="card"><h3>🖥️ Counter ${i+1}</h3><div class="sub">Ready for POS sales</div></div>`).join('')}</div>`;
+}
+function saveCounterCount(){S.business.counters=Math.min(20,Math.max(1,parseInt($('#counter-count').value)||1));save();refreshLoginCounters();render();toast('Counter settings saved');}
+function refreshLoginCounters(){
+  const el=$('#counter-pick');if(!el)return;const n=Math.min(20,Math.max(1,parseInt(S.business.counters)||1));
+  el.innerHTML=Array.from({length:n},(_,i)=>`<button type="button" class="${pickCounter===i+1?'sel':''}" onclick="selectCounter(${i+1}, this)">C${i+1}</button>`).join('');
+  if(pickCounter>n)pickCounter=1;
+}
+function renderPaymentSettings(b){
+  b.innerHTML=`<div class="card"><h3 style="color:var(--primary);margin-bottom:12px">Payment Methods</h3><div class="grid" style="grid-template-columns:1fr 1fr">
+    ${[['cash','💵 Cash'],['card','💳 Card'],['bank','🏦 Bank Transfer'],['payhere','🌐 PayHere']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:10px"><input type="checkbox" id="pmeth-${k}" ${S.business.methods[k]?'checked':''} style="width:auto"> ${l}</label>`).join('')}
+    <div><label>PayHere Merchant ID</label><input id="ph-mid" value="${esc(S.business.payhere?.merchantId||'')}"></div>
+    <div><label>PayHere Secret</label><input id="ph-secret" type="password" value="${esc(S.business.payhere?.secret||'')}"></div>
+  </div><button class="btn-accent" style="margin-top:14px" onclick="savePaymentSettings()">💾 Save Payment Settings</button></div>`;
+}
+function savePaymentSettings(){
+  ['cash','card','bank','payhere'].forEach(k=>S.business.methods[k]=$('#pmeth-'+k).checked);
+  S.business.payhere=S.business.payhere||{};S.business.payhere.merchantId=$('#ph-mid').value.trim();S.business.payhere.secret=$('#ph-secret').value;
+  save();toast('Payment settings saved');
+}
+window.addEventListener('DOMContentLoaded',()=>{refreshLoginCounters();});
+</script>
+</body>
+</html>
